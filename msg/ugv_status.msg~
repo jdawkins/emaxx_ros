@@ -1,0 +1,5 @@
+Header header
+bool armed
+uint8 mode
+uint8 nav_solution
+uint8 battery_percentage

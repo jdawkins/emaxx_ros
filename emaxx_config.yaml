@@ -1,0 +1,24 @@
+port_name: /dev/ttyACM0
+ugv_name: emaxx
+veh_id: 1
+nav_frame: ned_frame
+sim_mode: 0
+
+limits:
+   speed: 1.7
+   cruise_speed: 1.0
+   
+gains:
+   Kp_psi: 1.2
+   Kp_spd: 0.5
+   Ki_spd: 0.06
+
+radii:
+   path: 0.1
+   arrived: 0.5
+
+gps:
+   ref_lat: 38.0
+   ref_lon: -76.0
+   ref_alt: 0.0
+

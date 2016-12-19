@@ -1,0 +1,6 @@
+Header header
+bool armed
+bool landed
+bool autonomous
+uint8 mode
+uint8 nav_solution
