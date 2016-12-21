@@ -10,7 +10,7 @@
 #include <tf/transform_broadcaster.h>
 #include <tf/tf.h>
 #include <trajectory_msgs/MultiDOFJointTrajectoryPoint.h>
-#include <emaxx_ros/emaxx_status.h>
+#include <emaxx_ctrl_msgs/emaxx_status.h>
 #include <serial/serial.h>
 
 #define RED 0xFF0000
@@ -50,7 +50,7 @@
 #define CRUISE_SPEED 2
 
 
-ros::Subscriber joy_sub,path_sub,wp_sub,traj_sub,vel_sub;
+ros::Subscriber joy_sub,path_sub,wp_sub,traj_sub,vel_sub,status_sub;
 
 ros::Publisher cmd_pub, imu_pub, vel_pub,pose_pub;
 ros::Publisher status_pub;
@@ -69,7 +69,7 @@ geometry_msgs::PoseStamped  pose, old_pose, des_pose;
 geometry_msgs::Twist des_vel, vel;
 sensor_msgs::Imu imu; 
 trajectory_msgs::MultiDOFJointTrajectoryPoint trajectory;
-emaxx_ros::emaxx_status status,old_status;
+emaxx_ctrl_msgs::emaxx_status status,old_status;
 serial::Serial my_serial;
 
 double max_yaw_rate, max_speed, cruise_speed,ctrl_offset;
@@ -90,6 +90,7 @@ double brightness;
 
 bool armed, path_received;
 int sim_mode;
+int baud_rate;
 
 void sendLED(int color,float brightness);
 
@@ -125,6 +126,14 @@ void trajectoryCallBack(const trajectory_msgs::MultiDOFJointTrajectoryPoint &tra
     path_received = true;
 }
 
+void setStatusCallBack(const emaxx_ctrl_msgs::emaxx_status &stat_msg){
+
+  // The external program can only arm and set the state
+  //could potentially add ctrl mode but right now that gets set based on the type of set point sent
+    status.armed = stat_msg.armed;
+    status.nav_state = stat_msg.nav_state;    
+  
+}
 void joyCallBack(const sensor_msgs::Joy &joy_msg){
 
 
@@ -440,6 +449,7 @@ int main(int argc, char **argv){
     status.armed = false;
 
     nh.param("port_name",port_name,std::string("/dev/ttyUSB0"));
+    nh.param("baud_rate",baud_rate,115200);
     nh.param("ugv_name",ugv_name,std::string("emaxx"));
     nh.param("parent_frame",nav_frame,std::string("ned_frame"));
     nh.param("sim_mode",sim_mode,0);
@@ -460,7 +470,7 @@ int main(int argc, char **argv){
     imu_pub = nh.advertise<sensor_msgs::Imu>("/"+ugv_name+"/imu",10);
     vel_pub = nh.advertise<geometry_msgs::Twist>("/"+ugv_name+"/vel_ned",10);
     pose_pub =nh.advertise<geometry_msgs::PoseStamped>("/"+ugv_name+"/pose_ned",10);
-    status_pub = nh.advertise<emaxx_ros::emaxx_status>("/"+ugv_name+"/status",10);
+    status_pub = nh.advertise<emaxx_ctrl_msgs::emaxx_status>("/"+ugv_name+"/status",10);
 
 
     joy_sub = nh.subscribe("/joy",100,joyCallBack);
@@ -468,10 +478,11 @@ int main(int argc, char **argv){
     wp_sub = nh.subscribe("/"+ugv_name+"/waypoint",10,waypointCallbBack);
     traj_sub = nh.subscribe("/"+ugv_name+"/trajectory",1,trajectoryCallBack);
     vel_sub = nh.subscribe("/"+ugv_name+"/des_vel",10,targetVelCallBack);
+    status_sub = nh.subscribe("/"+ugv_name+"/set_status",1,setStatusCallBack);
 
-    std::cout << "attemping to open port " << port_name << " at: " << 57600 << std::endl;
+    std::cout << "attemping to open port " << port_name << " at: " << baud_rate << std::endl;
     my_serial.setPort(port_name);
-    my_serial.setBaudrate(57600);
+    my_serial.setBaudrate(baud_rate);
     my_serial.setTimeout(0,10,1,10,1);
     
     my_serial.open();

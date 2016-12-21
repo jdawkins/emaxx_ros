@@ -1,5 +1,5 @@
 <launch>
-    <node name="joystick_node" pkg="joy" type = "joy_node"/>
+    <!--node name="joystick_node" pkg="joy" type = "joy_node"/-->
 
    <group ns = "emaxx">
      <rosparam command = "load" file="$(find emaxx_ros)/emaxx_config_sim.yaml"/>  

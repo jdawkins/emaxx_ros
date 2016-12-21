@@ -1,4 +1,5 @@
 port_name: /dev/ttyACM0
+baud_rate: 57600
 ugv_name: emaxx
 veh_id: 1
 nav_frame: ned_frame
